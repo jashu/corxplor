@@ -1,0 +1,23 @@
+Package: corxplor
+Type: Package
+Version: 0.0.0.9000
+Title: Correlation Exploration
+Description: Tools for exploring large correlation matrices
+Authors@R: person("Jason", "Shumake", email = "shumake@utexas.edu",
+  role = c("aut","cre"))
+URL: https://github.com/jashu/corxplor
+BugReports: https://github.com/jashu/corxplor/issues
+Depends: R (>= 3.1.2)
+Imports:
+    assertthat,
+    DBI (>= 0.4.1),
+    dplyr (>= 0.5.0),
+    lazyeval (>= 0.1.10),
+    magrittr,
+    tibble,
+    R6,
+    Rcpp (>= 0.12.3),
+    utils
+LazyData: TRUE
+License: MIT + file LICENSE
+RoxygenNote: 5.0.1
