@@ -4,7 +4,7 @@
 
 - to facilitate the exploration of large correlation matrices by providing a data structure that can be quickly and interactively queried to view different subsets of bivariate relationships.
 
-- to provide resampling procedures to generate bootstrapped confidence intervals for correlation coefficients and control for false discoveries when exploring large correlation matrices.
+- to provide resampling procedures to generate bootstrapped confidence intervals for correlation coefficients and to control for false discoveries when calculating p-values for multiple correlations.
 
 ## Installation instructions
 
