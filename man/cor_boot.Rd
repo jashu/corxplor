@@ -15,7 +15,7 @@ to x. The default is equivalent to y = x (but more efficient).}
 
 \item{use}{an optional character string giving a method for handling missing
 values. This must be (an abbreviation of) one of the strings "everything",
-"all.obs", "complete.obs", "na.or.complete", or "pairwise.complete.obs"
+"all.obs", "complete.obs", or "pairwise.complete.obs"
 (default). See \code{\link[stats]{cor}} for explanation of these options.}
 
 \item{method}{a character string indicating which correlation coefficient is
@@ -40,7 +40,7 @@ Object of class "cor_boot", a \code{\link{cor_list}} object with the
  \item{lower}{lower endpoint of the confidence interval}
  \item{upper}{upper endpoint of the confidence interval}
 }
-and the attribute "CI" indicating the size of the confidence interval being
+and the attribute \code{"CI"} indicating the size of the confidence interval being
 returned.
 }
 \description{

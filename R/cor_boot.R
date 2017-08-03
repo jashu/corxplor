@@ -13,7 +13,7 @@
 #'
 #' @param use an optional character string giving a method for handling missing
 #'  values. This must be (an abbreviation of) one of the strings "everything",
-#'  "all.obs", "complete.obs", "na.or.complete", or "pairwise.complete.obs"
+#'  "all.obs", "complete.obs", or "pairwise.complete.obs"
 #'  (default). See \code{\link[stats]{cor}} for explanation of these options.
 #'
 #' @param method a character string indicating which correlation coefficient is
@@ -37,7 +37,7 @@
 #'  \item{lower}{lower endpoint of the confidence interval}
 #'  \item{upper}{upper endpoint of the confidence interval}
 #' }
-#' and the attribute "CI" indicating the size of the confidence interval being
+#' and the attribute \code{"CI"} indicating the size of the confidence interval being
 #' returned.
 #' @examples
 #' # Correlations with 95% CI for the numeric variables from the iris data set
