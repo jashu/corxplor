@@ -44,8 +44,7 @@
 #' @param seed Integer used to seed the random number generator.
 #'
 #' @param n_cores Integer indicating number of processes to be used in parallel
-#' processing. Set to 2 by default. To maximize speed, set to the number of
-#' available CPUs.
+#' processing. Set to 1 fewer than the number of available CPUs by default.
 #'
 #' @return Object of class "cor_perm", containing a \code{\link{cor_list}}
 #' object with an additional vector of empirically adjusted p-values that
@@ -58,7 +57,7 @@
 #' @export
 
 cor_perm <- function(x, y = NULL, use = "pairwise", method = "pearson",
-                     n_perm = 10000, seed = 42, n_cores = 2){
+                     n_perm = 10000, seed = 42, n_cores = NULL, ...){
   # construct cor_list. do this first so that cor_list can check that `x` and
   # `y` have named columns
   output <- cor_list(x, y, use, method)
@@ -68,12 +67,13 @@ cor_perm <- function(x, y = NULL, use = "pairwise", method = "pearson",
     return(output)
   }
   set.seed(seed)
-  x_perm <- replicate(n_perm, purrr::dmap(x, sample), simplify = FALSE)
+  x_perm <- replicate(n_perm, purrr::map_df(x, sample), simplify = FALSE)
   .perm_cor <- function(X, Y, use, method){
     XY <- suppressWarnings(cor_list(X, Y, use, method))
     max(XY$coef^2)
   }
   if(is.null(y)) y <- x
+  if(is.null(n_cores)) n_cores <- parallel::detectCores(logical = FALSE) - 1L
   cl <- parallel::makeCluster(n_cores)
   parallel::clusterExport(cl, "cor_list")
   null_r2 <- parallel::parSapply(cl, x_perm, .perm_cor, Y = y,
