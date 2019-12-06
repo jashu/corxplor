@@ -2,7 +2,7 @@
 % Please edit documentation in R/cor_list.R
 \name{cor_list}
 \alias{cor_list}
-\title{Construct a Correlation List}
+\title{Correlation List}
 \usage{
 cor_list(x, y = NULL, use = "pairwise", method = "pearson")
 }
@@ -33,7 +33,8 @@ and the attribute "coef" indicating the statistic that is being returned
 (Pearson's \emph{r}, Kendall's \emph{tau}, or Spearman's \emph{rho}).
 }
 \description{
-Construct a \code{"cor_list"} object from a correlation matrix.
+Return the correlations between the columns of a matrix or data frame as
+a \code{"cor_list"} object.
 }
 \details{
 The \code{\link[stats]{cor}} function from the R stats package returns
@@ -42,10 +43,10 @@ when there are many correlations. \code{cor_list} converts the correlation
 matrix into a list of all row-column pairs, removing the diagonal entries,
 and stores the type of correlation coefficient (Pearson's \emph{r}, Kendall's
 \emph{tau}, or Spearman's \emph{rho}) as an attribute in a \code{cor_list}
-object with specialized \code{print} and \code{summary} methods. The
+object with specialized \code{print} and \code{summarize} methods. The
 \code{print} method automatically outputs unique bivariate relationships,
-sorted from strongest to weakest. The \code{\link{summary.cor_list}} method
-enables the use of \code{\link[dplyr]{select_helpers}} expressions to return
+sorted from strongest to weakest. The \code{\link{summarise.cor_list}} method
+enables the use of \code{\link[tidyselect]{select_helpers}} expressions to return
 specific bivariate relationships that you want to look at.
 
 \code{cor_list} differs from R's native \code{\link[stats]{cor}} in the
@@ -60,9 +61,9 @@ following ways:
     instead of "everything".
   \item The \code{cor_list} object stores the type of correlation
     coefficient as an attribute.
-  \item The \code{cor_list} object has special summary methods for
+  \item The \code{cor_list} object has special summarize methods for
     selectively viewing relationships of interest. See
-    \code{\link{summary.cor_list}}.
+    \code{\link{summarize.cor_list}}.
     }
 }
 \examples{
@@ -73,18 +74,18 @@ iris_cors <- cor_list(iris[,-5])
 iris_cors
 
 # Look at all correlations with Sepal.Length
-summary(iris_cors, x = Sepal.Length)
+summarize(iris_cors, x = Sepal.Length)
 
 # Look at all correlations between sepal measurements and petal measurements
-summary(iris_cors, x = starts_with("Sepal"), y = starts_with("Petal"))
+summarize(iris_cors, x = starts_with("Sepal"), y = starts_with("Petal"))
 
 # Look at all correlations with Sepal.Length, excluding Sepal.Width
-summary(iris_cors, x = Sepal.Length, y = -Sepal.Width)
+summarize(iris_cors, x = Sepal.Length, y = -Sepal.Width)
 
 # Look at all correlations in their original order
-summary(iris_cors, sort = FALSE)
+summarize(iris_cors, sort = FALSE)
 
 }
 \seealso{
-\code{\link{cor_boot}}, \code{\link{summary.cor_list}}
+\code{\link{cor_boot}}, \code{\link{summarise.cor_list}}
 }
