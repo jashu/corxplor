@@ -28,8 +28,7 @@
 #' @param seed Integer used to seed the random number generator.
 #'
 #' @param n_cores Integer indicating number of processes to use in parallel
-#' processing. Set to 2 by default. To maximize speed, set to the number of
-#' available CPUs.
+#' processing. Set to 1 fewer than the number of available CPUs by default.
 #'
 #' @return Object of class "cor_boot", a \code{\link{cor_list}} object with the
 #'  following additional vectors:

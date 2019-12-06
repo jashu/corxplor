@@ -4,8 +4,17 @@
 \alias{cor_boot}
 \title{Bootstrapped Confidence Intervals for Correlations}
 \usage{
-cor_boot(x, y = NULL, use = "pairwise", method = "pearson",
-  n_rep = 10000, conf = 0.95, seed = 42, n_cores = 2)
+cor_boot(
+  x,
+  y = NULL,
+  use = "pairwise",
+  method = "pearson",
+  n_rep = 10000,
+  conf = 0.95,
+  seed = 42,
+  n_cores = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{a numeric matrix or data frame.}
@@ -30,8 +39,7 @@ required interval(s). 95\% intervals used by default.}
 \item{seed}{Integer used to seed the random number generator.}
 
 \item{n_cores}{Integer indicating number of processes to use in parallel
-processing. Set to 2 by default. To maximize speed, set to the number of
-available CPUs.}
+processing. Set to 1 fewer than the number of available CPUs by default.}
 }
 \value{
 Object of class "cor_boot", a \code{\link{cor_list}} object with the
