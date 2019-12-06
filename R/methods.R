@@ -1,8 +1,8 @@
 #' Summarize Correlation List
 #'
-#' Summary method for the \code{cor_list} class.
+#' Summarize method for the \code{cor_list} class.
 #'
-#' The \code{summary} method for the \code{cor_list} class allows for
+#' The \code{summarize} method for the \code{cor_list} class allows for
 #' interactive exploration of correlation results. Use
 #' \code{\link[dplyr]{select_helpers}} expressions to return specific
 #' bivariate relationships that you want to look at.
@@ -12,18 +12,18 @@
 #' iris_cors <- cor_list(iris[,-5])
 #'
 #' # Look at all correlations with Sepal.Length
-#' summary(iris_cors, x = Sepal.Length)
+#' summarize(iris_cors, x = Sepal.Length)
 #'
 #' # Look at all correlations between sepal measurements and petal measurements
-#' summary(iris_cors, x = starts_with("Sepal"), y = starts_with("Petal"))
+#' summarize(iris_cors, x = starts_with("Sepal"), y = starts_with("Petal"))
 #'
 #' # Look at all correlations with Sepal.Length, excluding Sepal.Width
-#' summary(iris_cors, x = Sepal.Length, y = -Sepal.Width)
+#' summarize(iris_cors, x = Sepal.Length, y = -Sepal.Width)
 #'
 #' # Look at all correlations in their original order
-#' summary(iris_cors, sort = FALSE)
+#' summarize(iris_cors, sort = FALSE)
 #'
-#' @param object An object of class \code{\link{cor_list}}.
+#' @param .data An object of class \code{\link{cor_list}}.
 #'
 #' @param x Variables to include/exclude from one side of the correlation.
 #' You can use the same specifications as in \code{\link[dplyr]{select}}. If
@@ -44,14 +44,16 @@
 #' @seealso \code{\link{cor_boot}}, \code{\link{cor_list}},
 #'   \code{\link[dplyr]{select}}, \code{\link[dplyr]{select_helpers}},
 #'
-#' @importFrom dplyr everything
+#' @importFrom tidyselect everything
+#' @importFrom rlang `!!`
+#' @importFrom dplyr summarize
 #' @export
-summary.cor_list <- function (object,
+summarise.cor_list <- function (.data,
                               x = everything(),
                               y = everything(),
                               sort = TRUE,
                               ...){
-  out <- as.data.frame(object)
+  out <- as.data.frame(.data)
   x_names <- unique(out$x); y_names <- unique(out$y)
   x <- lazyeval::lazy(x); y <- lazyeval::lazy(y)
   x <- dplyr::select_vars_(x_names, x); y <- dplyr::select_vars_(y_names, y)
@@ -67,10 +69,13 @@ summary.cor_list <- function (object,
   }
   out <- out[!duplicate,]
   out <- dplyr::select(out, -x, -y)
-  if(sort) out <- dplyr::arrange(out, dplyr::desc(abs(out[,2])))
-  CI <- if("cor_boot" %in% class(object)) attr(object, "CI") else NULL
-  n_perm <- if("cor_perm" %in% class(object)) attr(object, "n_perm") else NULL
-  p_adjust <- if("cor_test" %in% class(object)) attr(object, "p_adjust") else NULL
+  if(sort) out <- dplyr::arrange(
+    out, dplyr::desc(abs(!!sym(attr(.data, "coef"))))
+  )
+  CI <- if("cor_boot" %in% class(.data)) attr(.data, "CI") else NULL
+  n_perm <- if("cor_perm" %in% class(.data)) attr(.data, "n_perm") else NULL
+
+  p_adjust <- if("cor_test" %in% class(.data)) attr(.data, "p_adjust") else NULL
   structure(out, class = "cor_list_summary",
             CI = CI, n_perm = n_perm, p_adjust = p_adjust)
 }
@@ -134,7 +139,7 @@ as.matrix.cor_list <- function (x, ...){
 
 #' @export
 print.cor_list <- function(x, ...){
-  temp <- summary(x)
+  temp <- dplyr::summarize(x)
   temp <- purrr::map_if(temp, is.numeric, round, digits = 2)
   output <-  data.frame(correlates = temp[[1]],
                         coef = temp[[2]],
@@ -153,7 +158,7 @@ print.cor_list <- function(x, ...){
 
 #' @export
 print.cor_boot <- function(x, ...){
-  temp <- summary(x)
+  temp <- dplyr::summarize(x)
   temp <- purrr::map_if(temp, is.numeric, round, digits = 2)
   output <-  data.frame(correlates = temp[[1]],
                         coef = temp[[2]],
@@ -174,7 +179,7 @@ print.cor_boot <- function(x, ...){
 
 #' @export
 print.cor_perm <- function(x, ...){
-  temp <- summary(x)
+  temp <- dplyr::summarize(x)
   output <-  data.frame(correlates = temp[[1]],
                         coef = round(temp[[2]],2),
                         p = round(temp$p, 3),
