@@ -200,6 +200,16 @@ print.cor_list_summary <- function(x, ...){
                               "% CI", sep = "")
   }
   if(!is.null(x$n)) out$n <- x$n
-  if(!is.null(x$p)) out$p <- x$p
+  if(!is.null(attr(x, "p_adjust"))) out$`p*` <- x$p else{
+    if(!is.null(x$p)) out$p <- x$p
+  }
   print(out, row.names = FALSE)
+  if(!is.null(attr(x, "p_adjust"))){
+    cat(paste("\n\  *p-value adjustment:", attr(x, "p_adjust")))
+  }
+}
+
+#' @export
+print.cor_test <- function(x, ...){
+  print(summarize(x))
 }
