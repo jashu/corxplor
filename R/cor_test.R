@@ -5,28 +5,22 @@
 #'
 #' @examples
 #' # Create a correlation list for the numeric variables from the iris data set
-#' iris_cors <- cor_test(iris[,-5])
-#' summary(iris_cors)
+#' cor_test(iris[,-5])
 #'
 #' # Calculate a bootstrap confidence interval
-#' iris_cors <- cor_test(iris[,-5], boot_ci = TRUE, n_rep = 1000)
-#' summary(iris_cors)
+#' cor_test(iris[,-5], boot_ci = TRUE, n_rep = 1000)
 #'
 #' # Obtain unadjusted p-values with no correction for false discovery
-#' iris_cors <- cor_test(iris[,-5], p_adjust = "none")
-#' summary(iris_cors)
+#' cor_test(iris[,-5], p_adjust = "none")
 #'
 #' # Use permutation test to adjust p-value for family-wise error
-#' iris_cors <- cor_test(iris[,-5], p_adjust = "permute", n_perm = 1000)
-#' summary(iris_cors)
+#' cor_test(iris[,-5], p_adjust = "permute", n_perm = 1000)
 #'
 #' # Use Bonferroni correction to adjust p-value for family-wise error
-#' iris_cors <- cor_test(iris[,-5], p_adjust = "bonferroni")
-#' summary(iris_cors)
+#' cor_test(iris[,-5], p_adjust = "bonferroni")
 #'
 #' #' Calculate spearman's rho
-#' iris_cors <- cor_test(iris[,-5], method = "spearman")
-#' summary(iris_cors)
+#' cor_test(iris[,-5], method = "spearman")
 #'
 #' @inheritParams cor_list
 #'
@@ -48,9 +42,10 @@
 #' @return a \code{\link{cor_test}} object
 #'
 #' @seealso \code{\link[stats]{cor.test}}, \code{\link{cor_list}},
-#' \code{\link{summary.cor_list}},  \code{\link{cor_boot}},
+#' \code{\link{summarise.cor_list}},  \code{\link{cor_boot}},
 #' \code{\link{cor_perm}}, \code{\link[stats]{p.adjust}}
 #'
+#' @importFrom magrittr `%>%`
 #' @export
 
 cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
@@ -73,11 +68,12 @@ cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
     if(length(y) == 0) y <- NULL
   }
   if(is.matrix(x)) x <- as.data.frame(x)
-  if(is.null(y))  y <- x
+
   if(is.matrix(y)) y <- as.data.frame(y)
   if(use == "everything"){
     x_to_drop <- apply(x, 2, function(a) any(is.na(a)))
-    y_to_drop <- apply(y, 2, function(a) any(is.na(a)))
+    y_to_drop <- NULL
+    if(!is.null(y)) y_to_drop <- apply(y, 2, function(a) any(is.na(a)))
     if(all(x_to_drop) || all(y_to_drop)){
       stop("no variables with complete observations")
     }
@@ -88,7 +84,7 @@ cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
                            collapse = "\n\t"), sep = ""))
     }
     x <- x[, !x_to_drop]
-    y <- y[, !y_to_drop]
+    if(!is.null(y)) y <- y[, !y_to_drop]
   }
   # construct cor_list.
   out <- if(boot_ci){
@@ -101,12 +97,13 @@ cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
     stop("There are no complete cases. Testing not performed.")
   }
   # create list of all bivariate comparisons
+  if(is.null(y)) y <- x
   all_pairs <- purrr::cross2(x, y)
-  pair_names <- purrr::cross2(names(x), names(y))
   # remove self-correlations from list
-  diagonal <- sapply(pair_names, function(a) identical(a[[1]], a[[2]]))
+  diagonal <- purrr::map_lgl(all_pairs, ~identical(.x[[1]], .x[[2]]))
   all_pairs <- all_pairs[!diagonal]
-  pair_names <- pair_names[!diagonal]
+  pair_names <- list(out$x, out$y) %>% purrr::transpose() %>%
+    purrr::map(purrr::as_vector)
   # if applicable, reduce pairs to pairwise complete obs
   if(use == "pairwise.complete.obs"){
     all_pairs <- lapply(all_pairs, function(a){
@@ -115,31 +112,22 @@ cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
       list(x = x[pairwise_complete], y = y[pairwise_complete])
     })
   }
-  # compute n and join to out
-  df_left <- as.data.frame(out)
-  df_right <- dplyr::data_frame(
-    x = sapply(pair_names, function(x) x[[1]]),
-    y = sapply(pair_names, function(y) y[[2]]),
-    n = sapply(all_pairs, function(a) length(a[[1]]))
-  )
-  df <- dplyr::left_join(df_left, df_right, by = c("x", "y"))
-  out$n <- df$n
-  # remove duplicates from list
-  x_names <- df_right$x
-  y_names <- df_right$y
+  out$n <- purrr::map_int(all_pairs, ~ length(.x[[1]]))
   duplicate <- vector("logical", length(pair_names))
   for(i in seq_along(duplicate)){
     if(i > 1){
-      duplicate[i] <- any(sapply(1:(i-1), function(a)
-        identical(list(y_names[i], x_names[i]), pair_names[[a]])))
+      duplicate[i] <- any(
+        purrr::map_lgl(
+          1:(i-1), ~ any(identical(pair_names[[i]], rev(pair_names[[.x]])))
+        )
+      )
     }
   }
   all_pairs <- all_pairs[!duplicate]
   pair_names <- pair_names[!duplicate]
   # obtain n for each correlation and remove pairs with less than 5 cases
   # do not proceed if there are no cases with at least 5 observations
-  n <- sapply(all_pairs, function(a) length(a[[1]]))
-  low_n <- n < 5
+  low_n <- out$n[!duplicate] < 5
   if(all(low_n)) stop("insufficient number of complete observation pairs")
   if(any(low_n)) warning(paste(
     "not enough complete pairs of observations to test these relationships:\n\t",
@@ -148,23 +136,23 @@ cor_test <- function(x, y = NULL, use = "pairwise", method = "pearson",
     sep = ""))
   all_pairs <- all_pairs[!low_n]
   pair_names <- pair_names[!low_n]
-  x_names <- sapply(pair_names, function(x) x[[1]])
-  y_names <- sapply(pair_names, function(y) y[[2]])
+  x_names <- purrr::map_chr(pair_names, ~.x[1])
+  y_names <- purrr::map_chr(pair_names, ~.x[2])
   if(p_adjust == "permute"){
     perm <- cor_perm(x, y, use, method, ...)
     out$p <- perm$p
     attr(out, "class") <- c("cor_perm", attr(out, "class"))
     attr(out, "n_perm") <- attr(perm, "n_perm")
   } else {
-    p <- sapply(all_pairs, function(p, method, ...)
+    p <- purrr::map_dbl(all_pairs, function(p, method, ...)
       suppressWarnings(
         stats::cor.test(x = p[[1]], y = p[[2]], method = method, ...))$p.value,
         method = method)
     p <- stats::p.adjust(p, method = p_adjust)
     df_left <- as.data.frame(out)
     df_right <- dplyr::bind_rows(
-      dplyr::data_frame(x = x_names, y = y_names, p = p),
-      dplyr::data_frame(x = y_names, y = x_names, p = p)
+      dplyr::tibble(x = x_names, y = y_names, p = p),
+      dplyr::tibble(x = y_names, y = x_names, p = p)
     )
     df <- dplyr::left_join(df_left, df_right, by = c("x", "y"))
     out$p <- df$p

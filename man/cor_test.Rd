@@ -4,8 +4,15 @@
 \alias{cor_test}
 \title{Test for Multiple Correlations Between Paired Samples}
 \usage{
-cor_test(x, y = NULL, use = "pairwise", method = "pearson",
-  boot_ci = FALSE, p_adjust = "fdr", ...)
+cor_test(
+  x,
+  y = NULL,
+  use = "pairwise",
+  method = "pearson",
+  boot_ci = FALSE,
+  p_adjust = "fdr",
+  ...
+)
 }
 \arguments{
 \item{x}{a numeric matrix or data frame.}
@@ -46,32 +53,26 @@ product moment correlation coefficient, Kendall's tau or Spearman's rho.
 }
 \examples{
 # Create a correlation list for the numeric variables from the iris data set
-iris_cors <- cor_test(iris[,-5])
-summary(iris_cors)
+cor_test(iris[,-5])
 
 # Calculate a bootstrap confidence interval
-iris_cors <- cor_test(iris[,-5], boot_ci = TRUE, n_rep = 1000)
-summary(iris_cors)
+cor_test(iris[,-5], boot_ci = TRUE, n_rep = 1000)
 
 # Obtain unadjusted p-values with no correction for false discovery
-iris_cors <- cor_test(iris[,-5], p_adjust = "none")
-summary(iris_cors)
+cor_test(iris[,-5], p_adjust = "none")
 
 # Use permutation test to adjust p-value for family-wise error
-iris_cors <- cor_test(iris[,-5], p_adjust = "permute", n_perm = 1000)
-summary(iris_cors)
+cor_test(iris[,-5], p_adjust = "permute", n_perm = 1000)
 
 # Use Bonferroni correction to adjust p-value for family-wise error
-iris_cors <- cor_test(iris[,-5], p_adjust = "bonferroni")
-summary(iris_cors)
+cor_test(iris[,-5], p_adjust = "bonferroni")
 
 #' Calculate spearman's rho
-iris_cors <- cor_test(iris[,-5], method = "spearman")
-summary(iris_cors)
+cor_test(iris[,-5], method = "spearman")
 
 }
 \seealso{
 \code{\link[stats]{cor.test}}, \code{\link{cor_list}},
-\code{\link{summary.cor_list}},  \code{\link{cor_boot}},
+\code{\link{summarise.cor_list}},  \code{\link{cor_boot}},
 \code{\link{cor_perm}}, \code{\link[stats]{p.adjust}}
 }
