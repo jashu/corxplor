@@ -48,7 +48,8 @@
 #' @export
 
 cor_boot <- function(x, y = NULL, use = "pairwise", method = "pearson",
-                     n_rep = 10000, conf = 0.95, seed = 42, n_cores = 2){
+                     n_rep = 10000, conf = 0.95, seed = 42, n_cores = NULL,
+                     ...){
   # construct cor_list. do this first so that cor_list can check that `x` and
   # `y` have named columns
   output <- cor_list(x, y, use, method)
@@ -91,7 +92,9 @@ cor_boot <- function(x, y = NULL, use = "pairwise", method = "pearson",
   # ============================================================================
   # parallel bootstrap
   # ----------------------------------------------------------------------------
+  if(is.null(n_cores)) n_cores <- parallel::detectCores(logical = FALSE) - 1L
   cl <- parallel::makeCluster(n_cores)
+  parallel::clusterExport(cl, "cor_list")
   set.seed(seed)
   boot_out <- boot::boot(data = data,
                          statistic = .boot_cor,
