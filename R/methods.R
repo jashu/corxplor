@@ -91,6 +91,30 @@ as.data.frame.cor_list <- function (x, ...){
   if(!is.null(x$p)){
     output$p <- x$p
   }
+  if(!is.null(x$`p*`)){
+    output$`p*` <- x$`p*`
+  }
+  coef_name <- attr(x, "coef")
+  if(!is.null(coef_name)) names(output)[3] <- coef_name
+  output
+}
+
+#' @export
+as_tibble.cor_list <- function (x, ...){
+  output <- tibble(x = x[[1]],
+                       y = x[[2]],
+                       coef = x[[3]],
+                       stringsAsFactors = FALSE)
+  if(!is.null(x$n)){
+    output$n <- x$n
+  }
+  if(!is.null(x$lower)){
+    output$lower <- x$lower
+    output$upper <- x$upper
+  }
+  if(!is.null(x$p)){
+    output$p <- x$p
+  }
   coef_name <- attr(x, "coef")
   if(!is.null(coef_name)) names(output)[3] <- coef_name
   output
